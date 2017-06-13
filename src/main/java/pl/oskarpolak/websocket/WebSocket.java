@@ -11,9 +11,7 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Configuration
 @EnableWebSocket
@@ -21,6 +19,7 @@ public class WebSocket extends BinaryWebSocketHandler implements WebSocketConfig
 
     private Map<String, User> sessions =
             Collections.synchronizedMap(new HashMap<String, User>());
+    private  List<String> badWords = Arrays.asList("oskar", "kurwa", "chuj", "baran");
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
@@ -31,7 +30,7 @@ public class WebSocket extends BinaryWebSocketHandler implements WebSocketConfig
     protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) throws Exception {
 
         User userSending = sessions.get(session.getId());
-        String messageConverted = new String(message.getPayload().array());
+        String messageConverted = cenzure(new String(message.getPayload().array()));
 
         if(userSending.getNick().isEmpty()){
             userSending.setNick(messageConverted);
@@ -44,6 +43,15 @@ public class WebSocket extends BinaryWebSocketHandler implements WebSocketConfig
     }
 
 
+    private String cenzure(String message) {
+        String changedMessage = message;
+        for(String word : badWords) {
+            if(message.contains(word)){
+                 changedMessage = "Jestem głupi i przeklinam. Przepraszam :(";
+            }
+        }
+        return changedMessage;
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
